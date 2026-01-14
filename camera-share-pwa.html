@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Camera Share">
+    <title>Camera Share</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAADj0lEQVR4nO3dT2sUQRDH8V8EL4IgCIIgCB48ePDgwYMHDx48ePDgwYP4BxQ8ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDg4eAf0M1ut1vZ7XYru91udrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrdb2e12K7vdbmW3263sdruV3W63stvtVna73cput1vZ7XYru91uZbfbrex2u5Xdbrdy8A/o5vLy8sputzvZ7XYnu93uZLfbnex2u5Pdbney2+1Odrvdye/v7092u93Jbrc7+f3795Pdbnfy+/fvJ7vd7uT39/cnu93u5Pf39ye73e7k9/f3J7vd7uT39/cnu93u5ODg4GS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L7+++V3W638vv375Xdbrfy+/fvld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrRw8PKzsdruV3W638vv375Xf339Xfn//Xfn9/Xfl9/ffl9/ff19+f/99+f3995Xdbndy8PBwstvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrdy8PBwZbfbrex2u5WDh4eV3W63cvDwsLLb7VYOHh5WdrvdysHDw8put1s5eHhY2e12KwcPDyu73W7l4OFhZbfbrRw8PKzsdruVg4eHld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc7OXh4ONntdie73e5kt9ud7Ha7k91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruTg4eHk91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73cput1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375X/APwBfwEpTt5pAAAAAElFTkSuQmCC">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+            min-height: 300px;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .controls {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .button {
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .button:active {
+            transform: scale(0.95);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            opacity: 0.9;
+        }
+
+        .button-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .button-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .button-danger:hover {
+            background: #dc2626;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .camera-select {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .camera-select select {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .message-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .message-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .message-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .captured-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .share-url {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            word-break: break-all;
+            background: #f9fafb;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .camera-select {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📷 Camera Share</h1>
+    </div>
+
+    <div class="container">
+        <div class="camera-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            
+            <div class="controls">
+                <div id="message"></div>
+                
+                <div id="capturedImageContainer" style="display: none;">
+                    <img id="capturedImage" class="captured-image" alt="Captured photo">
+                    <div id="shareUrl" class="share-url" style="display: none;"></div>
+                </div>
+
+                <div class="camera-select">
+                    <select id="cameraSelect" style="display: none;">
+                        <option value="">Select Camera</option>
+                    </select>
+                </div>
+
+                <button id="startButton" class="button button-primary">Start Camera</button>
+                <button id="switchButton" class="button button-secondary" style="display: none;">Switch Camera</button>
+                <button id="captureButton" class="button button-secondary" style="display: none;">Capture Photo</button>
+                <button id="shareButton" class="button button-primary" style="display: none;">Share Photo</button>
+                <button id="newPhotoButton" class="button button-secondary" style="display: none;">Take Another Photo</button>
+                <button id="stopButton" class="button button-danger" style="display: none;">Stop Camera</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startButton = document.getElementById('startButton');
+        const switchButton = document.getElementById('switchButton');
+        const captureButton = document.getElementById('captureButton');
+        const shareButton = document.getElementById('shareButton');
+        const newPhotoButton = document.getElementById('newPhotoButton');
+        const stopButton = document.getElementById('stopButton');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const messageDiv = document.getElementById('message');
+        const capturedImage = document.getElementById('capturedImage');
+        const capturedImageContainer = document.getElementById('capturedImageContainer');
+        const shareUrl = document.getElementById('shareUrl');
+
+        let stream = null;
+        let currentFacingMode = 'user';
+        let devices = [];
+        let currentDeviceId = null;
+
+        // Show message
+        function showMessage(text, type = 'info') {
+            messageDiv.textContent = text;
+            messageDiv.className = `message message-${type}`;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Get available cameras
+        async function getCameras() {
+            try {
+                const allDevices = await navigator.mediaDevices.enumerateDevices();
+                devices = allDevices.filter(device => device.kind === 'videoinput');
+                
+                if (devices.length > 1) {
+                    cameraSelect.style.display = 'block';
+                    switchButton.style.display = 'block';
+                    
+                    cameraSelect.innerHTML = '<option value="">Select Camera</option>';
+                    devices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Camera ${index + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error enumerating devices:', error);
+            }
+        }
+
+        // Start camera
+        async function startCamera(deviceId = null) {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: deviceId 
+                        ? { deviceId: { exact: deviceId } }
+                        : { facingMode: currentFacingMode },
+                    audio: false
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                
+                currentDeviceId = deviceId;
+                
+                startButton.style.display = 'none';
+                captureButton.style.display = 'block';
+                stopButton.style.display = 'block';
+                
+                if (devices.length > 1) {
+                    switchButton.style.display = 'block';
+                }
+                
+                showMessage('Camera started successfully!', 'success');
+                
+                // Get cameras after starting (to get labels)
+                await getCameras();
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                let errorMessage = 'Could not access camera. ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Please allow camera access in your browser settings.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage += 'Camera is already in use by another application.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
+            }
+        }
+
+        // Switch camera
+        function switchCamera() {
+            if (devices.length < 2) return;
+            
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startCamera();
+        }
+
+        // Capture photo
+        function capturePhoto() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            const imageDataUrl = canvas.toDataURL('image/png');
+            capturedImage.src = imageDataUrl;
+            capturedImageContainer.style.display = 'block';
+            
+            captureButton.style.display = 'none';
+            shareButton.style.display = 'block';
+            newPhotoButton.style.display = 'block';
+            
+            showMessage('Photo captured!', 'success');
+        }
+
+        // Share photo
+        async function sharePhoto() {
+            try {
+                // Convert data URL to blob
+                const response = await fetch(capturedImage.src);
+                const blob = await response.blob();
+                
+                // Check if Web Share API is available
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([blob], 'camera-share-photo.png', { type: 'image/png' });
+                    
+                    const shareData = {
+                        files: [file],
+                        title: 'Camera Share Photo',
+                        text: 'Check out this photo I captured!'
+                    };
+                    
+                    if (navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        showMessage('Photo shared successfully!', 'success');
+                        return;
+                    }
+                }
+                
+                // Fallback: Download the image
+                const link = document.createElement('a');
+                link.download = 'camera-share-photo.png';
+                link.href = capturedImage.src;
+                link.click();
+                showMessage('Photo downloaded! Share API not available on this device.', 'info');
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showMessage('Share cancelled', 'info');
+                } else {
+                    console.error('Error sharing:', error);
+                    showMessage('Error sharing photo: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Take another photo
+        function takeAnotherPhoto() {
+            capturedImageContainer.style.display = 'none';
+            captureButton.style.display = 'block';
+            shareButton.style.display = 'none';
+            newPhotoButton.style.display = 'none';
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            video.srcObject = null;
+            startButton.style.display = 'block';
+            captureButton.style.display = 'none';
+            switchButton.style.display = 'none';
+            stopButton.style.display = 'none';
+            capturedImageContainer.style.display = 'none';
+            shareButton.style.display = 'none';
+            newPhotoButton.style.display = 'none';
+            
+            showMessage('Camera stopped', 'info');
+        }
+
+        // Event listeners
+        startButton.addEventListener('click', () => startCamera());
+        switchButton.addEventListener('click', switchCamera);
+        captureButton.addEventListener('click', capturePhoto);
+        shareButton.addEventListener('click', sharePhoto);
+        newPhotoButton.addEventListener('click', takeAnotherPhoto);
+        stopButton.addEventListener('click', stopCamera);
+        cameraSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                startCamera(e.target.value);
+            }
+        });
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(
+                    registration => console.log('Service Worker registered:', registration),
+                    error => console.log('Service Worker registration failed:', error)
+                );
+            });
+        }
+
+        // Check for camera support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showMessage('Camera API not supported in this browser', 'error');
+            startButton.disabled = true;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "Camera Share",
+  "short_name": "CameraShare",
+  "description": "Camera sharing application for iPhone and other devices",
+  "start_url": "/camera-share-pwa.html",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAADj0lEQVR4nO3dT2sUQRDH8V8EL4IgCIIgCB48ePDgwYMHDx48ePDgwYP4BxQ8ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDg4eAf0M1ut1vZ7XYru91udrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrdb2e12K7vdbmW3263sdruV3W63stvtVna73cput1vZ7XYru91uZbfbrRz8A/o5vLy8sputzvZ7XYnu93uZLfbnex2u5Pdbney2+1Odrvdye/v7092u93Jbrc7+f3795Pdbnfy+/fvJ7vd7uT39/cnu93u5Pf39ye73e7k9/f3J7vd7uT39/cnu93u5ODg4GS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L7+++V3W638vv375Xdbrfy+/fvld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrRw8PKzsdruV3W638vv375Xf339Xfn//Xfn9/Xfl9/ffl9/ff19+f/99+f3995Xdbndy8PBwstvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrdy8PBwZbfbrex2u5WDh4eV3W63cvDwsLLb7VYOHh5WdrvdysHDw8put1s5eHhY2e12KwcPDyu73W7l4OFhZbfbrRw8PKzsdruVg4eHld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc7OXh4ONntdie73e5kt9ud7Ha7k91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruTg4eHk91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73cput1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375X/APwBfwEpTt5pAAAAAElFTkSuQmCC",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAADj0lEQVR4nO3dT2sUQRDH8V8EL4IgCIIgCB48ePDgwYMHDx48ePDgwYP4BxQ8ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDg4eAf0M1ut1vZ7XYru91udrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrdb2e12K7vdbmW3263sdruV3W63stvtVna73cput1vZ7XYru91uZbfbrRz8A/o5vLy8sputzvZ7XYnu93uZLfbnex2u5Pdbney2+1Odrvdye/v7092u93Jbrc7+f3795Pdbnfy+/fvJ7vd7uT39/cnu93u5Pf39ye73e7k9/f3J7vd7uT39/cnu93u5ODg4GS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L7+++V3W638vv375Xdbrfy+/fvld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrRw8PKzsdruV3W638vv375Xf339Xfn//Xfn9/Xfl9/ffl9/ff19+f/99+f3995Xdbndy8PBwstvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrdy8PBwZbfbrex2u5WDh4eV3W63cvDwsLLb7VYOHh5WdrvdysHDw8put1s5eHhY2e12KwcPDyu73W7l4OFhZbfbrRw8PKzsdruVg4eHld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc7OXh4ONntdie73e5kt9ud7Ha7k91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruTg4eHk91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73cput1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375X/APwBfwEpTt5pAAAAAElFTkSuQmCC",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAADj0lEQVR4nO3dT2sUQRDH8V8EL4IgCIIgCB48ePDgwYMHDx48ePDgwYP4BxQ8ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDgwYMHDx48ePDg4eAf0M1ut1vZ7XYru91udrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrdb2e12K7vdbmW3263sdruV3W63stvtVna73cput1vZ7XYru91uZbfbrRz8A/o5vLy8sputzvZ7XYnu93uZLfbnex2u5Pdbney2+1Odrvdye/v7092u93Jbrc7+f3795Pdbnfy+/fvJ7vd7uT39/cnu93u5Pf39ye73e7k9/f3J7vd7uT39/cnu93u5ODg4GS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L7+++V3W638vv375Xdbrfy+/fvld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73clut1vZ7XYru91uZbfbrRw8PKzsdruV3W638vv375Xf339Xfn//Xfn9/Xfl9/ffl9/ff19+f/99+f3995Xdbndy8PBwstvtTna73clut1vZ7XYru91uZbfbrex2u5Xdbrdy8PBwZbfbrex2u5Xdbrdy8PBwZbfbrex2u5WDh4eV3W63cvDwsLLb7VYOHh5WdrvdysHDw8put1s5eHhY2e12KwcPDyu73W7l4OFhZbfbrRw8PKzsdruVg4eHld1ut3Lw8LCy2+1Wdrvdym63W9ntdiu73W5lt9ut7Ha7ld1ut7Lb7VZ2u93Kbrc7OXh4ONntdie73e5kt9ud7Ha7k91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruTg4eHk91ud7Lb7U52u93Jbrc72e12J7vd7mS3253sdruT3W53stvtTna73cput1vZ7XYru91uZbfbrex2u5Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375Xdbrfy+/fvld1ut/L79++V3W638vv375X/APwBfwEpTt5pAAAAAElFTkSuQmCC",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
