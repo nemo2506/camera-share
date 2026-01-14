@@ -52,7 +52,7 @@ connectButton.addEventListener('click', async () => {
     const session = sessions.get(remoteSessionId);
     
     if (!session) {
-      alert('Session ID invalide with '+remoteSessionId);
+      alert('Session ID invalide with ' + remoteSessionId);
       return;
     }
 
