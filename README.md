@@ -2,6 +2,12 @@
 
 A Progressive Web App for sharing camera photos on iPhone and other devices, secured for local network use only.
 
+## Quick Start
+
+📦 **Download**: Get the ready-to-use package [`camera-share-pwa.zip`](camera-share-pwa.zip) - contains all files without version control
+
+Simply extract the ZIP file and open `camera-share-pwa.html` in your browser or deploy to a web server.
+
 ## Features
 
 - 📷 **Camera Access**: Access your device's camera(s) directly in the browser
