@@ -538,19 +538,22 @@
             
             let shareUrl;
             if (localIP) {
-                // Utiliser l'IP locale avec le protocole et port si nécessaire
-                const protocol = window.location.protocol;
-                const port = window.location.port ? ':' + window.location.port : '';
+                // Pour les IP locales, toujours utiliser HTTP (pas HTTPS)
+                // car le serveur local n'a pas de certificat SSL
+                const port = window.location.port ? ':' + window.location.port : ':8080';
                 const path = window.location.pathname;
-                shareUrl = `${protocol}//${localIP}${port}${path}`;
+                
+                // Forcer HTTP pour les IP locales
+                shareUrl = `http://${localIP}${port}${path}`;
                 
                 shareUrlDisplay.innerHTML = `
                     <div style="margin-bottom: 10px;">
-                        <strong style="color: #48bb78;">📡 IP Locale:</strong><br>
-                        ${shareUrl}
+                        <strong style="color: #48bb78;">📡 URL à ouvrir sur votre PC:</strong><br>
+                        <span style="font-size: 14px; color: #333;">${shareUrl}</span>
                     </div>
-                    <div style="font-size: 11px; color: #666; padding: 8px; background: #fff3cd; border-radius: 5px; margin-top: 8px;">
-                        ⚠️ Assurez-vous que votre iPhone et PC sont sur le même réseau WiFi
+                    <div style="font-size: 11px; color: #666; padding: 8px; background: #e6f7ff; border-radius: 5px; margin-top: 8px; border-left: 3px solid #1890ff;">
+                        ℹ️ Utilisez <strong>HTTP</strong> (pas HTTPS) pour l'IP locale<br>
+                        ✅ iPhone et PC doivent être sur le même WiFi
                     </div>
                 `;
             } else {
