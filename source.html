@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Camera Source">
+    <title>Camera Source - iPhone</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .status.inactive { background: #fed7d7; color: #742a2a; }
+        .status.active { background: #c6f6d5; color: #22543d; }
+        .status.waiting { background: #fef5e7; color: #856404; }
+        .status.connected { background: #cfe2ff; color: #052c65; }
+
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 16/9;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-secondary { background: #48bb78; color: white; }
+
+        .connection-box {
+            background: #e6fffa;
+            border: 2px solid #81e6d9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .peer-id {
+            font-family: 'Courier New', monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            letter-spacing: 2px;
+            word-break: break-all;
+        }
+
+        .qr-code {
+            margin: 15px 0;
+        }
+
+        .qr-code img {
+            max-width: 200px;
+            border-radius: 10px;
+            border: 3px solid #333;
+        }
+
+        .instructions {
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .instructions h3 {
+            color: #d68910;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .viewer-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Camera Source</h1>
+        <p class="subtitle">Partagez votre caméra iPhone</p>
+
+        <div class="status inactive" id="status">Caméra inactive</div>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Appuyez sur "Démarrer la caméra"</li>
+                <li>Notez le <strong>Code de connexion</strong> ci-dessous</li>
+                <li>Sur votre PC, ouvrez <strong>receiver.html</strong></li>
+                <li>Entrez ce code sur le PC</li>
+                <li>Le flux s'affichera automatiquement !</li>
+            </ol>
+        </div>
+
+        <button class="btn btn-primary" id="startBtn">▶️ Démarrer la caméra</button>
+        <button class="btn btn-danger" id="stopBtn" style="display: none;">⏹️ Arrêter</button>
+
+        <div class="video-wrapper" id="videoWrapper" style="display: none;">
+            <video id="localVideo" autoplay playsinline muted></video>
+            <div class="camera-controls">
+                <div class="control-btn" id="switchBtn">🔄</div>
+            </div>
+        </div>
+
+        <div class="connection-box" id="connectionBox" style="display: none;">
+            <div class="viewer-count" id="viewerCount">👥 0 spectateur(s)</div>
+            <h3 style="color: #234e52; margin-bottom: 10px;">Code de connexion</h3>
+            <div class="peer-id" id="peerId">Génération...</div>
+            <button class="btn btn-secondary" id="copyBtn">📋 Copier le code</button>
+            <div class="qr-code" id="qrCode"></div>
+            <p style="color: #666; font-size: 13px; margin-top: 10px;">
+                Partagez ce code avec votre PC
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let peer = null;
+        let localStream = null;
+        let facingMode = 'environment';
+        let connections = [];
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const switchBtn = document.getElementById('switchBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const status = document.getElementById('status');
+        const videoWrapper = document.getElementById('videoWrapper');
+        const connectionBox = document.getElementById('connectionBox');
+        const localVideo = document.getElementById('localVideo');
+        const peerIdEl = document.getElementById('peerId');
+        const qrCode = document.getElementById('qrCode');
+        const viewerCount = document.getElementById('viewerCount');
+
+        // Générer un ID simple à retenir
+        function generateSimpleId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let id = '';
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        // Démarrer la caméra et PeerJS
+        async function startCamera() {
+            try {
+                // Obtenir la caméra
+                const constraints = {
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: true // Activer l'audio aussi
+                };
+
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                localVideo.srcObject = localStream;
+
+                // Initialiser PeerJS
+                const peerId = generateSimpleId();
+                peer = new Peer(peerId, {
+                    host: 'peerjs-server.herokuapp.com',
+                    secure: true,
+                    port: 443,
+                    path: '/',
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
+                });
+
+                peer.on('open', (id) => {
+                    console.log('Peer ID:', id);
+                    peerIdEl.textContent = id;
+                    
+                    // Générer le QR code
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(id)}`;
+                    qrCode.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+                    
+                    status.textContent = '✅ Caméra active - En attente de connexion';
+                    status.className = 'status waiting';
+                });
+
+                peer.on('call', (call) => {
+                    console.log('Appel entrant...');
+                    // Répondre avec le flux local
+                    call.answer(localStream);
+                    
+                    connections.push(call);
+                    updateViewerCount();
+                    
+                    status.textContent = '🎥 Diffusion en cours';
+                    status.className = 'status connected';
+                    
+                    call.on('close', () => {
+                        connections = connections.filter(c => c !== call);
+                        updateViewerCount();
+                        if (connections.length === 0) {
+                            status.textContent = '✅ Caméra active - En attente de connexion';
+                            status.className = 'status waiting';
+                        }
+                    });
+                });
+
+                peer.on('error', (err) => {
+                    console.error('Erreur PeerJS:', err);
+                    alert('Erreur de connexion: ' + err.message);
+                });
+
+                // UI
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                videoWrapper.style.display = 'block';
+                connectionBox.style.display = 'block';
+
+            } catch (err) {
+                console.error('Erreur caméra:', err);
+                alert('⚠️ Impossible d\'accéder à la caméra.\n\nVérifiez les autorisations dans Réglages > Safari > Caméra');
+            }
+        }
+
+        // Arrêter
+        function stopCamera() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if (peer) {
+                peer.destroy();
+                peer = null;
+            }
+            connections = [];
+            
+            status.textContent = 'Caméra inactive';
+            status.className = 'status inactive';
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            videoWrapper.style.display = 'none';
+            connectionBox.style.display = 'none';
+        }
+
+        // Changer de caméra
+        async function switchCamera() {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: true
+            };
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            localVideo.srcObject = localStream;
+            
+            // Mettre à jour les connexions existantes
+            connections.forEach(call => {
+                if (call.peerConnection) {
+                    const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                    if (sender) {
+                        sender.replaceTrack(localStream.getVideoTracks()[0]);
+                    }
+                }
+            });
+        }
+
+        // Copier le code
+        async function copyCode() {
+            const code = peerIdEl.textContent;
+            try {
+                await navigator.clipboard.writeText(code);
+                copyBtn.textContent = '✅ Code copié !';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Copier le code';
+                }, 2000);
+            } catch (err) {
+                // Fallback iOS
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                copyBtn.textContent = '✅ Code copié !';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Copier le code';
+                }, 2000);
+            }
+        }
+
+        // Compter les spectateurs
+        function updateViewerCount() {
+            viewerCount.textContent = `👥 ${connections.length} spectateur(s)`;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        switchBtn.addEventListener('click', switchCamera);
+        copyBtn.addEventListener('click', copyCode);
+
+        // Empêcher la mise en veille
+        let wakeLock = null;
+        startBtn.addEventListener('click', async () => {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('Wake lock non supporté');
+            }
+        });
+    </script>
+</body>
+</html>
