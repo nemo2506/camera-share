@@ -496,25 +496,94 @@
             await startCamera();
         }
 
+        // Obtenir l'IP locale
+        async function getLocalIP() {
+            return new Promise((resolve) => {
+                const pc = new RTCPeerConnection({ iceServers: [] });
+                pc.createDataChannel('');
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                
+                pc.onicecandidate = (ice) => {
+                    if (!ice || !ice.candidate || !ice.candidate.candidate) {
+                        pc.close();
+                        return;
+                    }
+                    
+                    const candidateStr = ice.candidate.candidate;
+                    const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+                    const ipMatch = candidateStr.match(ipRegex);
+                    
+                    if (ipMatch && ipMatch[1]) {
+                        const ip = ipMatch[1];
+                        // Ignorer les IP loopback
+                        if (!ip.startsWith('127.')) {
+                            pc.close();
+                            resolve(ip);
+                        }
+                    }
+                };
+                
+                // Timeout après 3 secondes
+                setTimeout(() => {
+                    pc.close();
+                    resolve(null);
+                }, 3000);
+            });
+        }
+
         // Afficher les infos de partage
-        function showShareInfo() {
-            const currentUrl = window.location.href;
-            shareUrlDisplay.textContent = currentUrl;
+        async function showShareInfo() {
+            // Essayer d'obtenir l'IP locale
+            const localIP = await getLocalIP();
+            
+            let shareUrl;
+            if (localIP) {
+                // Utiliser l'IP locale avec le protocole et port si nécessaire
+                const protocol = window.location.protocol;
+                const port = window.location.port ? ':' + window.location.port : '';
+                const path = window.location.pathname;
+                shareUrl = `${protocol}//${localIP}${port}${path}`;
+                
+                shareUrlDisplay.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #48bb78;">📡 IP Locale:</strong><br>
+                        ${shareUrl}
+                    </div>
+                    <div style="font-size: 11px; color: #666; padding: 8px; background: #fff3cd; border-radius: 5px; margin-top: 8px;">
+                        ⚠️ Assurez-vous que votre iPhone et PC sont sur le même réseau WiFi
+                    </div>
+                `;
+            } else {
+                // Fallback sur l'URL actuelle
+                shareUrl = window.location.href;
+                shareUrlDisplay.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        ${shareUrl}
+                    </div>
+                    <div style="font-size: 11px; color: #e53e3e; padding: 8px; background: #fed7d7; border-radius: 5px; margin-top: 8px;">
+                        ⚠️ Impossible de détecter l'IP locale. Utilisez cette URL ou configurez un serveur local.
+                    </div>
+                `;
+            }
             
             // Générer QR code
-            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentUrl)}`;
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(shareUrl)}`;
             qrContainer.innerHTML = `
                 <img src="${qrCodeUrl}" alt="QR Code">
                 <p style="margin-top: 10px; color: #666; font-size: 13px;">
                     Scannez avec votre PC
                 </p>
             `;
+            
+            // Sauvegarder l'URL pour la fonction de copie
+            window.currentShareUrl = shareUrl;
         }
 
         // Copier l'URL
         async function copyUrl() {
+            const urlToCopy = window.currentShareUrl || window.location.href;
             try {
-                await navigator.clipboard.writeText(window.location.href);
+                await navigator.clipboard.writeText(urlToCopy);
                 copyUrlBtn.innerHTML = '<span>✅</span> URL copiée !';
                 setTimeout(() => {
                     copyUrlBtn.innerHTML = '<span>📋</span> Copier l\'URL';
@@ -522,7 +591,7 @@
             } catch (err) {
                 // Fallback pour iOS
                 const textArea = document.createElement('textarea');
-                textArea.value = window.location.href;
+                textArea.value = urlToCopy;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
@@ -536,12 +605,13 @@
 
         // Partager via Web Share API
         async function shareUrl() {
+            const urlToShare = window.currentShareUrl || window.location.href;
             if (navigator.share) {
                 try {
                     await navigator.share({
                         title: 'Camera Share',
                         text: 'Accédez à ma caméra iPhone',
-                        url: window.location.href
+                        url: urlToShare
                     });
                 } catch (err) {
                     console.log('Partage annulé');
