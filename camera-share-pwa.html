@@ -236,6 +236,24 @@
         let devices = [];
         let currentDeviceId = null;
 
+        // Check if accessed from local network
+        function isLocalNetwork() {
+            const hostname = window.location.hostname;
+            
+            // Allow localhost and local IPs
+            const localPatterns = [
+                /^localhost$/i,
+                /^127\.\d+\.\d+\.\d+$/,
+                /^192\.168\.\d+\.\d+$/,
+                /^10\.\d+\.\d+\.\d+$/,
+                /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/,
+                /^\[?::1\]?$/,
+                /^\[?fe80:/i
+            ];
+            
+            return localPatterns.some(pattern => pattern.test(hostname));
+        }
+
         // Show message
         function showMessage(text, type = 'info') {
             messageDiv.textContent = text;
@@ -437,6 +455,13 @@
                     error => console.log('Service Worker registration failed:', error)
                 );
             });
+        }
+
+        // Check for local network access
+        if (!isLocalNetwork()) {
+            showMessage('⚠️ Security Notice: This app is restricted to local network access only. Please access from localhost or a local network IP address.', 'error');
+            startButton.disabled = true;
+            console.warn('Access denied: Not on local network. Hostname:', window.location.hostname);
         }
 
         // Check for camera support
