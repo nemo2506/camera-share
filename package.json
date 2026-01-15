@@ -1,0 +1,24 @@
+{
+  "name": "camera-share",
+  "version": "1.0.0",
+  "description": "WebRTC camera sharing between iPhone and PC using Socket.IO signaling server",
+  "main": "server/signaling-server.js",
+  "scripts": {
+    "start": "node server/signaling-server.js",
+    "dev": "node server/signaling-server.js"
+  },
+  "keywords": [
+    "webrtc",
+    "socket.io",
+    "camera-share",
+    "signaling"
+  ],
+  "author": "",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "socket.io": "^4.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
