@@ -72,11 +72,14 @@ Share the network URL with devices on your local network
 ============================================================
 ```
 
+**💡 Tip**: If you have connection issues, first visit `http://[SERVER_IP]:3000/connection-test.html` on your iPhone to diagnose the problem.
+
 ### 3. Connect iPhone (Sender)
 
 1. On your iPhone, open Safari
 2. Navigate to: `http://[SERVER_IP]:3000/iphone-client.html`
    - Replace `[SERVER_IP]` with the network IP shown by the server
+   - **Recommended**: iOS 14+ for best compatibility
 3. Enter a **Room ID** (e.g., `room123`)
 4. Tap **"Start Camera & Share"**
 5. Allow camera and microphone access when prompted
@@ -141,9 +144,24 @@ const config = {
 
 ## 🛠️ Troubleshooting
 
+### Quick Diagnostic Tool
+
+**NEW**: Use the built-in connection test page to diagnose issues:
+```
+http://[SERVER_IP]:3000/connection-test.html
+```
+
+This tool will:
+- ✅ Verify HTTP server connectivity
+- ✅ Test Socket.IO connection
+- ✅ Check WebRTC support
+- ✅ Validate camera API availability
+- ✅ Detect iOS version and provide specific guidance
+
 ### Connection Issues
 
 **Problem**: Video doesn't appear
+- ✅ **First, run the connection test** at `http://[SERVER_IP]:3000/connection-test.html`
 - ✅ Verify both devices are on the same network
 - ✅ Check that Room IDs match exactly
 - ✅ Ensure server is running (check terminal)
@@ -154,6 +172,16 @@ const config = {
 - ✅ Grant camera/microphone permissions in browser
 - ✅ Ensure no other app is using the camera
 - ✅ On iPhone, check Settings > Safari > Camera
+- ✅ **iOS requirement**: iOS 14+ required for camera access on local network IPs
+- ✅ **For iOS 13 and below**: HTTPS is required for camera access
+
+**Problem**: iPhone can't connect to server
+- ✅ **Run connection test first**: `http://[SERVER_IP]:3000/connection-test.html`
+- ✅ Verify the IP address is correct (check server terminal output)
+- ✅ Ensure iPhone is on the same WiFi network as PC
+- ✅ Try accessing the main page first: `http://[SERVER_IP]:3000/`
+- ✅ Check if corporate/guest WiFi is blocking connections
+- ✅ Disable any VPN on either device
 
 **Problem**: Server won't start
 - ✅ Verify Node.js is installed: `node --version`

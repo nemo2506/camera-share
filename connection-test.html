@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Test - Camera Share</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .test-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+
+        .status {
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.pending {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        .status.pass {
+            background: #4ade80;
+            color: #000;
+        }
+
+        .status.fail {
+            background: #f87171;
+            color: #fff;
+        }
+
+        .info {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #4ade80;
+            color: white;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #22c55e;
+        }
+
+        .detail-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .links a {
+            color: #4ade80;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Connection Test</h1>
+        <p style="text-align: center; margin-bottom: 20px; opacity: 0.9;">Test your connection to the Camera Share server</p>
+
+        <div class="test-box">
+            <h3>System Information</h3>
+            <div class="test-item">
+                <span>Current URL:</span>
+                <span id="currentUrl" style="font-size: 12px;">-</span>
+            </div>
+            <div class="test-item">
+                <span>Protocol:</span>
+                <span id="protocol">-</span>
+            </div>
+            <div class="test-item">
+                <span>Browser:</span>
+                <span id="browser">-</span>
+            </div>
+            <div class="test-item">
+                <span>OS:</span>
+                <span id="os">-</span>
+            </div>
+        </div>
+
+        <div class="test-box">
+            <h3>Connection Tests</h3>
+            <div class="test-item">
+                <span>HTTP Server Reachable</span>
+                <span class="status pending" id="httpStatus">PENDING</span>
+            </div>
+            <div class="test-item">
+                <span>Socket.IO Connection</span>
+                <span class="status pending" id="socketStatus">PENDING</span>
+            </div>
+            <div class="test-item">
+                <span>WebRTC Support</span>
+                <span class="status pending" id="webrtcStatus">PENDING</span>
+            </div>
+            <div class="test-item">
+                <span>Camera API Available</span>
+                <span class="status pending" id="cameraStatus">PENDING</span>
+            </div>
+        </div>
+
+        <button onclick="runTests()">Run Tests</button>
+
+        <div class="test-box">
+            <h3>Test Log</h3>
+            <div class="detail-box" id="logBox">
+                Click "Run Tests" to start diagnostics...
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/iphone-client.html">📱 iPhone Client</a>
+            <a href="/pc-client.html">💻 PC Client</a>
+            <a href="/">🏠 Home</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        'use strict';
+
+        const logBox = document.getElementById('logBox');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.style.margin = '5px 0';
+            entry.style.opacity = '0.9';
+            if (type === 'error') {
+                entry.style.color = '#f87171';
+            } else if (type === 'success') {
+                entry.style.color = '#4ade80';
+            }
+            entry.textContent = `[${timestamp}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function updateStatus(elementId, status, text = null) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = text || status.toUpperCase();
+        }
+
+        // Populate system info
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        
+        const ua = navigator.userAgent;
+        let browserInfo = 'Unknown';
+        let osInfo = 'Unknown';
+        
+        if (ua.includes('Safari') && !ua.includes('Chrome')) {
+            const match = ua.match(/Version\/(\d+\.\d+)/);
+            browserInfo = match ? `Safari ${match[1]}` : 'Safari';
+        } else if (ua.includes('Chrome')) {
+            const match = ua.match(/Chrome\/(\d+)/);
+            browserInfo = match ? `Chrome ${match[1]}` : 'Chrome';
+        } else if (ua.includes('Firefox')) {
+            const match = ua.match(/Firefox\/(\d+)/);
+            browserInfo = match ? `Firefox ${match[1]}` : 'Firefox';
+        }
+
+        if (ua.includes('iPhone') || ua.includes('iPad')) {
+            const match = ua.match(/OS (\d+)_(\d+)/);
+            osInfo = match ? `iOS ${match[1]}.${match[2]}` : 'iOS';
+        } else if (ua.includes('Android')) {
+            const match = ua.match(/Android (\d+(\.\d+)?)/);
+            osInfo = match ? `Android ${match[1]}` : 'Android';
+        } else if (ua.includes('Windows')) {
+            osInfo = 'Windows';
+        } else if (ua.includes('Mac OS X')) {
+            osInfo = 'macOS';
+        } else if (ua.includes('Linux')) {
+            osInfo = 'Linux';
+        }
+
+        document.getElementById('browser').textContent = browserInfo;
+        document.getElementById('os').textContent = osInfo;
+
+        async function runTests() {
+            logBox.innerHTML = '';
+            log('Starting connection tests...', 'info');
+
+            // Test 1: HTTP Server
+            log('Test 1: Checking HTTP server...', 'info');
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    updateStatus('httpStatus', 'pass');
+                    log('✓ HTTP server is reachable', 'success');
+                } else {
+                    updateStatus('httpStatus', 'fail');
+                    log(`✗ HTTP server returned status: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('httpStatus', 'fail');
+                log(`✗ HTTP server error: ${error.message}`, 'error');
+            }
+
+            // Test 2: Socket.IO
+            log('Test 2: Testing Socket.IO connection...', 'info');
+            return new Promise((resolve) => {
+                const socket = io({
+                    reconnection: false,
+                    timeout: 5000
+                });
+
+                socket.on('connect', () => {
+                    updateStatus('socketStatus', 'pass');
+                    log('✓ Socket.IO connected successfully', 'success');
+                    socket.disconnect();
+                    continueTests();
+                });
+
+                socket.on('connect_error', (error) => {
+                    updateStatus('socketStatus', 'fail');
+                    log(`✗ Socket.IO connection failed: ${error.message}`, 'error');
+                    continueTests();
+                });
+
+                socket.on('connect_timeout', () => {
+                    updateStatus('socketStatus', 'fail');
+                    log('✗ Socket.IO connection timeout', 'error');
+                    continueTests();
+                });
+
+                function continueTests() {
+                    // Test 3: WebRTC
+                    log('Test 3: Checking WebRTC support...', 'info');
+                    if (window.RTCPeerConnection) {
+                        updateStatus('webrtcStatus', 'pass');
+                        log('✓ WebRTC is supported', 'success');
+                    } else {
+                        updateStatus('webrtcStatus', 'fail');
+                        log('✗ WebRTC is not supported', 'error');
+                    }
+
+                    // Test 4: Camera API
+                    log('Test 4: Checking camera API...', 'info');
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        updateStatus('cameraStatus', 'pass');
+                        log('✓ Camera API is available', 'success');
+                        
+                        // Check if we're on HTTPS or localhost
+                        if (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            log('✓ Running on secure context (HTTPS/localhost)', 'success');
+                        } else {
+                            // Check if it's a local network IP
+                            const hostname = window.location.hostname;
+                            const isLocalIP = /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(hostname);
+                            if (isLocalIP) {
+                                log('⚠ Running on local network IP. Camera access may work on iOS 14+ and modern browsers.', 'info');
+                                if (osInfo.includes('iOS')) {
+                                    const iosVersion = osInfo.match(/iOS (\d+)/);
+                                    if (iosVersion && parseInt(iosVersion[1]) < 14) {
+                                        log('⚠ WARNING: iOS version < 14 may require HTTPS for camera access', 'error');
+                                    }
+                                }
+                            } else {
+                                log('⚠ WARNING: Not HTTPS or localhost. Camera access may be blocked.', 'error');
+                                log('  For iOS: Requires HTTPS or local network IP (iOS 14+)', 'info');
+                            }
+                        }
+                    } else {
+                        updateStatus('cameraStatus', 'fail');
+                        log('✗ Camera API is not available', 'error');
+                    }
+
+                    log('', 'info');
+                    log('Tests completed!', 'success');
+                    log('', 'info');
+                    
+                    // Provide recommendation
+                    const allPass = 
+                        document.getElementById('httpStatus').classList.contains('pass') &&
+                        document.getElementById('socketStatus').classList.contains('pass') &&
+                        document.getElementById('webrtcStatus').classList.contains('pass') &&
+                        document.getElementById('cameraStatus').classList.contains('pass');
+                    
+                    if (allPass) {
+                        log('✓ All tests passed! Your device should work with Camera Share.', 'success');
+                    } else {
+                        log('⚠ Some tests failed. Please check the errors above.', 'error');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
