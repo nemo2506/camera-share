@@ -34,6 +34,11 @@
               }
           });
       });
+      if ('Notification' in window) {
+          console.log('This browser supports notifications.');
+      } else {
+          console.error('This browser does not support notifications.');
+      }      
     </script>
     <!--
       This HTML file is a template.
