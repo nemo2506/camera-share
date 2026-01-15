@@ -504,11 +504,6 @@
             socket.on('error', (error) => {
                 log(`Socket error: ${error}`, 'error');
             });
-
-            socket.on('connect_error', (error) => {
-                log('Connection error: ' + error.message, 'error');
-                updateStatus('disconnected', 'Failed to connect to server');
-            });
         }
 
         function startStatsMonitoring() {
