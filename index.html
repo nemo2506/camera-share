@@ -26,20 +26,18 @@
       You need to enable JavaScript to run this app.
     </noscript>
     <div id="root"></div>
+    <button id="notifyButton">Enable Notifications</button>
     <script>
-      button.addEventListener('click', () => {
-          Notification.requestPermission().then((permission) => {
-              if (permission === 'granted') {
-                  new Notification('Permission granted!');
-              }
-          });
-      });
-      if ('Notification' in window) {
-          console.log('This browser supports notifications.');
-      } else {
-          console.error('This browser does not support notifications.');
-      }      
-    </script>
+        const button = document.getElementById('notifyButton');
+    
+        button.addEventListener('click', () => {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    new Notification('Notification enabled on camera setting');
+                }
+            });
+        });
+    </script>   
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
