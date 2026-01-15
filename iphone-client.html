@@ -167,6 +167,27 @@
             margin-bottom: 5px;
         }
 
+        .diagnostic-box {
+            background: rgba(74, 222, 128, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 12px;
+            line-height: 1.5;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .diagnostic-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #4ade80;
+        }
+
+        .diagnostic-item {
+            margin: 3px 0;
+            font-family: 'Courier New', monospace;
+        }
+
         #connectionLog {
             background: rgba(0,0,0,0.3);
             padding: 15px;
@@ -213,6 +234,13 @@
             4. Open PC client with same Room ID
         </div>
 
+        <div class="diagnostic-box">
+            <strong>📊 Connection Info:</strong>
+            <div class="diagnostic-item">Server: <span id="serverUrl">Loading...</span></div>
+            <div class="diagnostic-item">Protocol: <span id="protocol">Loading...</span></div>
+            <div class="diagnostic-item">Browser: <span id="browser">Loading...</span></div>
+        </div>
+
         <div id="connectionLog"></div>
     </div>
 
@@ -230,6 +258,25 @@
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
         const connectionLog = document.getElementById('connectionLog');
+
+        // Populate diagnostic info
+        document.getElementById('serverUrl').textContent = window.location.host;
+        document.getElementById('protocol').textContent = window.location.protocol + '//' + window.location.host;
+        const ua = navigator.userAgent;
+        let browserInfo = 'Unknown';
+        if (ua.includes('Safari') && !ua.includes('Chrome')) {
+            const match = ua.match(/Version\/(\d+\.\d+)/);
+            browserInfo = match ? `Safari ${match[1]}` : 'Safari';
+            const iosMatch = ua.match(/OS (\d+)_(\d+)/);
+            if (iosMatch) {
+                browserInfo += ` (iOS ${iosMatch[1]}.${iosMatch[2]})`;
+            }
+        } else if (ua.includes('Chrome')) {
+            browserInfo = 'Chrome';
+        } else if (ua.includes('Firefox')) {
+            browserInfo = 'Firefox';
+        }
+        document.getElementById('browser').textContent = browserInfo;
 
         let socket = null;
         let localStream = null;
@@ -283,7 +330,15 @@
             } catch (error) {
                 updateStatus('disconnected', `Error: ${error.message}`);
                 startButton.disabled = false;
-                alert('Failed to access camera: ' + error.message);
+                
+                // Provide helpful error message for common issues
+                let errorMsg = 'Failed to access camera: ' + error.message;
+                if (error.name === 'NotAllowedError') {
+                    errorMsg += '\n\n⚠️ Camera access denied. Please:\n1. Grant camera permission in browser settings\n2. Make sure no other app is using the camera';
+                } else if (error.name === 'NotSupportedError' || error.name === 'TypeError') {
+                    errorMsg += '\n\n⚠️ Camera access requires HTTPS or localhost.\n\nFor local network access on iOS:\n• iOS 14+ allows camera on local IPs (192.168.x.x, 10.x.x.x)\n• For older iOS, you need HTTPS\n• Try accessing via: http://[server-ip]:3000/iphone-client.html';
+                }
+                alert(errorMsg);
             }
         }
 
@@ -345,6 +400,15 @@
             socket.on('disconnect', () => {
                 log('Disconnected from server');
                 updateStatus('disconnected', 'Disconnected from server');
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`Connection error: ${error.message}`);
+                updateStatus('disconnected', `Failed to connect to server: ${error.message}`);
+            });
+
+            socket.on('error', (error) => {
+                log(`Socket error: ${error}`);
             });
         }
 
