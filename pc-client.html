@@ -320,6 +320,10 @@
     <script>
         'use strict';
 
+        // Configuration
+        const DEFAULT_ROOM_ID = 'room123';
+        const STATS_UPDATE_INTERVAL = 2000; // Update stats every 2 seconds
+
         const remoteVideo = document.getElementById('remoteVideo');
         const placeholder = document.getElementById('placeholder');
         const videoContainer = document.getElementById('videoContainer');
@@ -360,7 +364,7 @@
         }
 
         function connectToRoom() {
-            currentRoom = roomInput.value.trim() || 'room123';
+            currentRoom = roomInput.value.trim() || DEFAULT_ROOM_ID;
             
             connectButton.disabled = true;
             roomInput.disabled = true;
@@ -520,7 +524,7 @@
                 } catch (error) {
                     console.error('Stats error:', error);
                 }
-            }, 1000);
+            }, STATS_UPDATE_INTERVAL);
         }
 
         function stopStatsMonitoring() {

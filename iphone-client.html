@@ -220,6 +220,9 @@
     <script>
         'use strict';
 
+        // Configuration
+        const DEFAULT_ROOM_ID = 'room123';
+
         const localVideo = document.getElementById('localVideo');
         const roomInput = document.getElementById('roomInput');
         const startButton = document.getElementById('startButton');
@@ -285,7 +288,7 @@
         }
 
         function connectToServer() {
-            currentRoom = roomInput.value.trim() || 'room123';
+            currentRoom = roomInput.value.trim() || DEFAULT_ROOM_ID;
             
             socket = io({
                 reconnection: true,

@@ -15,15 +15,29 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { networkInterfaces } = require('os');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3000;
 
 // Create HTTP server to serve static files
 const server = http.createServer((req, res) => {
-  let filePath = '.' + req.url;
-  if (filePath === './') {
-    filePath = './index.html';
+  // Prevent directory traversal attacks
+  let requestedPath = req.url;
+  if (requestedPath === '/') {
+    requestedPath = '/index.html';
+  }
+
+  // Sanitize path and restrict to current directory
+  const safePath = path.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
+  const filePath = path.join(__dirname, '..', safePath);
+  
+  // Ensure the resolved path is within the project directory
+  const projectRoot = path.join(__dirname, '..');
+  if (!filePath.startsWith(projectRoot)) {
+    res.writeHead(403, { 'Content-Type': 'text/html' });
+    res.end('<h1>403 - Forbidden</h1>', 'utf-8');
+    return;
   }
 
   const extname = String(path.extname(filePath)).toLowerCase();
@@ -57,9 +71,28 @@ const server = http.createServer((req, res) => {
 });
 
 // Initialize Socket.IO with CORS settings for local network
+// Allow connections from local network IP ranges
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      
+      // Allow localhost and local network IPs
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000'
+      ];
+      
+      // Allow local network IP patterns (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+      const localIpPattern = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
+      
+      if (allowedOrigins.includes(origin) || localIpPattern.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST']
   }
 });
@@ -151,7 +184,6 @@ io.on('connection', (socket) => {
 
 // Get local network IP address
 function getLocalIpAddress() {
-  const { networkInterfaces } = require('os');
   const nets = networkInterfaces();
   
   for (const name of Object.keys(nets)) {
