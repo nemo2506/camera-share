@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Camera Share - iPhone Sender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .video-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        video {
+            width: 100%;
+            display: block;
+            background: #000;
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+        }
+
+        .status-dot.connecting {
+            background: #fbbf24;
+        }
+
+        .status-dot.disconnected {
+            background: #f87171;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .room-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: #4ade80;
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: #22c55e;
+        }
+
+        .btn-stop {
+            background: #f87171;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: #ef4444;
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #connectionLog {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 iPhone Camera Share</h1>
+        <p class="subtitle">Share your camera to a PC on the local network</p>
+
+        <div class="video-container">
+            <video id="localVideo" autoplay playsinline muted></video>
+            <div class="status-overlay">
+                <span class="status-dot disconnected" id="statusDot"></span>
+                <span id="statusText">Not connected</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="room-input-group">
+                <input type="text" id="roomInput" placeholder="Enter Room ID (e.g., room123)" value="room123">
+            </div>
+            <button id="startButton" class="btn-start">Start Camera & Share</button>
+            <button id="stopButton" class="btn-stop" disabled>Stop Sharing</button>
+        </div>
+
+        <div class="info-box">
+            <strong>Instructions:</strong>
+            1. Enter a Room ID (same as PC)<br>
+            2. Tap "Start Camera & Share"<br>
+            3. Allow camera access<br>
+            4. Open PC client with same Room ID
+        </div>
+
+        <div id="connectionLog"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        'use strict';
+
+        const localVideo = document.getElementById('localVideo');
+        const roomInput = document.getElementById('roomInput');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const connectionLog = document.getElementById('connectionLog');
+
+        let socket = null;
+        let localStream = null;
+        let peerConnection = null;
+        let currentRoom = null;
+
+        const config = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        function log(message) {
+            console.log(message);
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            connectionLog.appendChild(entry);
+            connectionLog.scrollTop = connectionLog.scrollHeight;
+        }
+
+        function updateStatus(status, message) {
+            statusDot.className = `status-dot ${status}`;
+            statusText.textContent = message;
+            log(message);
+        }
+
+        async function startCamera() {
+            try {
+                startButton.disabled = true;
+                updateStatus('connecting', 'Requesting camera access...');
+
+                // Request camera with optimal settings for mobile
+                const constraints = {
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: true
+                };
+
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                localVideo.srcObject = localStream;
+
+                log(`Camera started: ${localStream.getVideoTracks()[0].label}`);
+                updateStatus('connecting', 'Camera active, connecting to server...');
+
+                connectToServer();
+            } catch (error) {
+                updateStatus('disconnected', `Error: ${error.message}`);
+                startButton.disabled = false;
+                alert('Failed to access camera: ' + error.message);
+            }
+        }
+
+        function connectToServer() {
+            currentRoom = roomInput.value.trim() || 'room123';
+            
+            socket = io({
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            socket.on('connect', () => {
+                log('Connected to signaling server');
+                updateStatus('connecting', 'Joining room...');
+                socket.emit('join-room', currentRoom);
+            });
+
+            socket.on('room-ready', ({ peers }) => {
+                log(`Room ready, ${peers.length} peer(s) found`);
+                updateStatus('connecting', 'Creating peer connection...');
+                // Create offer for existing peers
+                peers.forEach(peerId => {
+                    createPeerConnection(peerId);
+                });
+            });
+
+            socket.on('peer-joined', ({ peerId }) => {
+                log(`New peer joined: ${peerId}`);
+                createPeerConnection(peerId);
+            });
+
+            socket.on('answer', async ({ answer, senderId }) => {
+                log('Received answer from peer');
+                try {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                    updateStatus('connected', '✓ Connected to PC');
+                } catch (error) {
+                    log('Error setting remote description: ' + error.message);
+                }
+            });
+
+            socket.on('ice-candidate', async ({ candidate, senderId }) => {
+                if (candidate && peerConnection) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                        log('Added ICE candidate from peer');
+                    } catch (error) {
+                        log('Error adding ICE candidate: ' + error.message);
+                    }
+                }
+            });
+
+            socket.on('peer-left', ({ peerId }) => {
+                log(`Peer left: ${peerId}`);
+                updateStatus('connecting', 'Peer disconnected, waiting...');
+            });
+
+            socket.on('disconnect', () => {
+                log('Disconnected from server');
+                updateStatus('disconnected', 'Disconnected from server');
+            });
+        }
+
+        function createPeerConnection(targetPeerId) {
+            peerConnection = new RTCPeerConnection(config);
+
+            // Add local stream tracks to peer connection
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+                log(`Added ${track.kind} track to peer connection`);
+            });
+
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        candidate: event.candidate,
+                        roomId: currentRoom,
+                        targetId: targetPeerId
+                    });
+                    log('Sent ICE candidate');
+                }
+            };
+
+            // Monitor connection state
+            peerConnection.oniceconnectionstatechange = () => {
+                log(`ICE connection state: ${peerConnection.iceConnectionState}`);
+                if (peerConnection.iceConnectionState === 'connected') {
+                    updateStatus('connected', '✓ Streaming to PC');
+                    stopButton.disabled = false;
+                } else if (peerConnection.iceConnectionState === 'disconnected') {
+                    updateStatus('connecting', 'Connection lost, reconnecting...');
+                } else if (peerConnection.iceConnectionState === 'failed') {
+                    updateStatus('disconnected', 'Connection failed');
+                }
+            };
+
+            // Create and send offer
+            createOffer(targetPeerId);
+        }
+
+        async function createOffer(targetPeerId) {
+            try {
+                const offer = await peerConnection.createOffer({
+                    offerToReceiveAudio: false,
+                    offerToReceiveVideo: false
+                });
+                await peerConnection.setLocalDescription(offer);
+                
+                socket.emit('offer', {
+                    offer: offer,
+                    roomId: currentRoom,
+                    targetId: targetPeerId
+                });
+                
+                log('Sent offer to peer');
+                updateStatus('connecting', 'Waiting for PC to accept...');
+            } catch (error) {
+                log('Error creating offer: ' + error.message);
+            }
+        }
+
+        function stopSharing() {
+            log('Stopping camera share...');
+
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (socket) {
+                socket.emit('hangup', { roomId: currentRoom });
+                socket.disconnect();
+                socket = null;
+            }
+
+            localVideo.srcObject = null;
+            updateStatus('disconnected', 'Camera stopped');
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            roomInput.disabled = false;
+        }
+
+        startButton.addEventListener('click', () => {
+            roomInput.disabled = true;
+            startCamera();
+        });
+
+        stopButton.addEventListener('click', stopSharing);
+
+        // Prevent screen from sleeping during streaming
+        if ('wakeLock' in navigator) {
+            let wakeLock = null;
+            startButton.addEventListener('click', async () => {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    log('Screen wake lock activated');
+                } catch (err) {
+                    log('Wake lock error: ' + err.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

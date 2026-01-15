@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Share - PC Receiver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .video-container {
+            position: relative;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        video {
+            width: 100%;
+            max-height: 70vh;
+            display: block;
+            background: #000;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .placeholder-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+        }
+
+        .status-dot.connecting {
+            background: #fbbf24;
+        }
+
+        .status-dot.disconnected {
+            background: #f87171;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .video-stats {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .room-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+
+        button:active {
+            transform: translateY(2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-connect {
+            background: #4ade80;
+            color: white;
+        }
+
+        .btn-connect:hover:not(:disabled) {
+            background: #22c55e;
+        }
+
+        .btn-disconnect {
+            background: #f87171;
+            color: white;
+        }
+
+        .btn-disconnect:hover:not(:disabled) {
+            background: #ef4444;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #4ade80;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 5px 0;
+        }
+
+        .info-box li:before {
+            content: "→ ";
+            margin-right: 5px;
+        }
+
+        #connectionLog {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+
+        .log-entry.success {
+            color: #4ade80;
+        }
+
+        .log-entry.error {
+            color: #f87171;
+        }
+
+        .log-entry.info {
+            color: #60a5fa;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💻 PC Camera Receiver</h1>
+        <p class="subtitle">Receive iPhone camera stream on your PC</p>
+
+        <div class="video-container" id="videoContainer">
+            <div class="placeholder" id="placeholder">
+                <div class="placeholder-icon">📹</div>
+                <h2>Waiting for iPhone Camera...</h2>
+                <p>Enter the room ID and click Connect</p>
+            </div>
+            <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
+            <div class="status-overlay" style="display: none;" id="statusOverlay">
+                <div class="status-left">
+                    <span class="status-dot disconnected" id="statusDot"></span>
+                    <span id="statusText">Not connected</span>
+                </div>
+                <div class="video-stats" id="videoStats"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="room-input-group">
+                <input type="text" id="roomInput" placeholder="Enter Room ID (must match iPhone)" value="room123">
+            </div>
+            <button id="connectButton" class="btn-connect">Connect to Room</button>
+            <button id="disconnectButton" class="btn-disconnect" disabled style="display: none;">Disconnect</button>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <strong>📋 Instructions</strong>
+                <ul>
+                    <li>Enter the same Room ID as iPhone</li>
+                    <li>Click "Connect to Room"</li>
+                    <li>Wait for iPhone to start sharing</li>
+                    <li>Video will appear automatically</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 Tips</strong>
+                <ul>
+                    <li>Both devices must be on same network</li>
+                    <li>iPhone must start camera first</li>
+                    <li>Use simple Room IDs (e.g., "room123")</li>
+                    <li>Check console for detailed logs</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="connectionLog"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        'use strict';
+
+        const remoteVideo = document.getElementById('remoteVideo');
+        const placeholder = document.getElementById('placeholder');
+        const videoContainer = document.getElementById('videoContainer');
+        const roomInput = document.getElementById('roomInput');
+        const connectButton = document.getElementById('connectButton');
+        const disconnectButton = document.getElementById('disconnectButton');
+        const statusOverlay = document.getElementById('statusOverlay');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const videoStats = document.getElementById('videoStats');
+        const connectionLog = document.getElementById('connectionLog');
+
+        let socket = null;
+        let peerConnection = null;
+        let currentRoom = null;
+        let statsInterval = null;
+
+        const config = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        function log(message, type = 'info') {
+            console.log(message);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            connectionLog.appendChild(entry);
+            connectionLog.scrollTop = connectionLog.scrollHeight;
+        }
+
+        function updateStatus(status, message) {
+            statusDot.className = `status-dot ${status}`;
+            statusText.textContent = message;
+            log(message, status === 'connected' ? 'success' : status === 'disconnected' ? 'error' : 'info');
+        }
+
+        function connectToRoom() {
+            currentRoom = roomInput.value.trim() || 'room123';
+            
+            connectButton.disabled = true;
+            roomInput.disabled = true;
+            
+            log('Connecting to signaling server...', 'info');
+            updateStatus('connecting', 'Connecting to server...');
+
+            socket = io({
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            socket.on('connect', () => {
+                log('Connected to signaling server', 'success');
+                updateStatus('connecting', 'Joining room...');
+                socket.emit('join-room', currentRoom);
+                statusOverlay.style.display = 'flex';
+            });
+
+            socket.on('room-ready', ({ peers }) => {
+                log(`Joined room "${currentRoom}", ${peers.length} peer(s) present`, 'success');
+                updateStatus('connecting', 'Waiting for iPhone camera...');
+                disconnectButton.style.display = 'block';
+                disconnectButton.disabled = false;
+                connectButton.style.display = 'none';
+            });
+
+            socket.on('offer', async ({ offer, senderId }) => {
+                log('Received offer from iPhone', 'info');
+                updateStatus('connecting', 'Establishing connection...');
+                
+                try {
+                    peerConnection = new RTCPeerConnection(config);
+                    
+                    // Handle incoming tracks (video/audio)
+                    peerConnection.ontrack = (event) => {
+                        log(`Received ${event.track.kind} track`, 'success');
+                        if (event.streams && event.streams[0]) {
+                            remoteVideo.srcObject = event.streams[0];
+                            remoteVideo.style.display = 'block';
+                            placeholder.style.display = 'none';
+                            updateStatus('connected', '✓ Receiving video stream');
+                            
+                            // Start stats monitoring
+                            startStatsMonitoring();
+                        }
+                    };
+
+                    // Handle ICE candidates
+                    peerConnection.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            socket.emit('ice-candidate', {
+                                candidate: event.candidate,
+                                roomId: currentRoom,
+                                targetId: senderId
+                            });
+                            log('Sent ICE candidate', 'info');
+                        }
+                    };
+
+                    // Monitor connection state
+                    peerConnection.oniceconnectionstatechange = () => {
+                        log(`ICE connection state: ${peerConnection.iceConnectionState}`, 'info');
+                        
+                        if (peerConnection.iceConnectionState === 'connected') {
+                            updateStatus('connected', '✓ Connected - Receiving video');
+                        } else if (peerConnection.iceConnectionState === 'disconnected') {
+                            updateStatus('connecting', 'Connection lost, reconnecting...');
+                        } else if (peerConnection.iceConnectionState === 'failed') {
+                            updateStatus('disconnected', 'Connection failed');
+                            log('Connection failed - try reconnecting', 'error');
+                        }
+                    };
+
+                    // Set remote description (offer from iPhone)
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                    log('Set remote description', 'success');
+
+                    // Create answer
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    log('Created answer', 'success');
+
+                    // Send answer back to iPhone
+                    socket.emit('answer', {
+                        answer: answer,
+                        targetId: senderId
+                    });
+                    log('Sent answer to iPhone', 'success');
+
+                } catch (error) {
+                    log('Error handling offer: ' + error.message, 'error');
+                    updateStatus('disconnected', 'Connection error');
+                }
+            });
+
+            socket.on('ice-candidate', async ({ candidate, senderId }) => {
+                if (candidate && peerConnection) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                        log('Added ICE candidate from iPhone', 'info');
+                    } catch (error) {
+                        log('Error adding ICE candidate: ' + error.message, 'error');
+                    }
+                }
+            });
+
+            socket.on('peer-left', ({ peerId }) => {
+                log('iPhone disconnected', 'error');
+                updateStatus('connecting', 'iPhone disconnected, waiting...');
+                stopStatsMonitoring();
+                remoteVideo.srcObject = null;
+                remoteVideo.style.display = 'none';
+                placeholder.style.display = 'block';
+            });
+
+            socket.on('peer-hangup', ({ peerId }) => {
+                log('iPhone ended the stream', 'error');
+                updateStatus('connecting', 'Stream ended, waiting...');
+                stopStatsMonitoring();
+                remoteVideo.srcObject = null;
+                remoteVideo.style.display = 'none';
+                placeholder.style.display = 'block';
+            });
+
+            socket.on('disconnect', () => {
+                log('Disconnected from server', 'error');
+                updateStatus('disconnected', 'Disconnected from server');
+            });
+
+            socket.on('connect_error', (error) => {
+                log('Connection error: ' + error.message, 'error');
+                updateStatus('disconnected', 'Failed to connect to server');
+            });
+        }
+
+        function startStatsMonitoring() {
+            stopStatsMonitoring();
+            
+            statsInterval = setInterval(async () => {
+                if (!peerConnection) return;
+                
+                try {
+                    const stats = await peerConnection.getStats();
+                    stats.forEach(report => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                            const width = report.frameWidth;
+                            const height = report.frameHeight;
+                            const fps = report.framesPerSecond;
+                            
+                            if (width && height) {
+                                videoStats.textContent = `${width}x${height} @ ${fps || 0} fps`;
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Stats error:', error);
+                }
+            }, 1000);
+        }
+
+        function stopStatsMonitoring() {
+            if (statsInterval) {
+                clearInterval(statsInterval);
+                statsInterval = null;
+                videoStats.textContent = '';
+            }
+        }
+
+        function disconnect() {
+            log('Disconnecting...', 'info');
+
+            stopStatsMonitoring();
+
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (socket) {
+                socket.emit('hangup', { roomId: currentRoom });
+                socket.disconnect();
+                socket = null;
+            }
+
+            remoteVideo.srcObject = null;
+            remoteVideo.style.display = 'none';
+            placeholder.style.display = 'block';
+            statusOverlay.style.display = 'none';
+            
+            connectButton.disabled = false;
+            connectButton.style.display = 'block';
+            disconnectButton.disabled = true;
+            disconnectButton.style.display = 'none';
+            roomInput.disabled = false;
+
+            updateStatus('disconnected', 'Disconnected');
+        }
+
+        connectButton.addEventListener('click', connectToRoom);
+        disconnectButton.addEventListener('click', disconnect);
+
+        // Handle video metadata
+        remoteVideo.addEventListener('loadedmetadata', () => {
+            log(`Video loaded: ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`, 'success');
+        });
+
+        remoteVideo.addEventListener('resize', () => {
+            log(`Video resized: ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`, 'info');
+        });
+    </script>
+</body>
+</html>
