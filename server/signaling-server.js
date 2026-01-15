@@ -87,8 +87,9 @@ io.on('connection', (socket) => {
 
     // Notify the joining client about other peers in the room
     const otherClients = roomClients.filter(id => id !== socket.id);
+    socket.emit('room-ready', { peers: otherClients });
+    
     if (otherClients.length > 0) {
-      socket.emit('room-ready', { peers: otherClients });
       // Notify other clients about the new peer
       socket.to(roomId).emit('peer-joined', { peerId: socket.id });
     }
